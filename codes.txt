@@ -1,0 +1,160 @@
+public class PlayerContext : DbContext
+    {
+         public PlayerContext (DbContextOptions options) : base(options)
+         {
+
+         }
+
+         public DbSet<Players> Players => Set<Players>();
+
+    
+
+    
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+        
+        
+            modelBuilder.Entity<Players>()
+                .HasKey(p => p.Id);
+
+            modelBuilder.Entity<Players>().ToTable("players", schema: "character");
+         
+        
+        }
+    
+       
+
+
+
+    }
+
+public class PlayerController : ControllerBase
+{
+    private readonly ILogger<PlayerController> _logger;
+    private readonly PlayerService _playerService;
+
+
+    public PlayerController(
+        ILogger<PlayerController> logger,
+        PlayerService characterService)
+    {
+        _logger = logger;
+        _playerService = characterService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<Characters>>> GetCharacters()
+    {
+        var players = await _playerService.GetPlayers();
+        return Ok(players);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<object>> GetCharacter(Guid id)
+    {
+        var player = await _playerService.GetPlayer(id);
+        return Ok(player);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<object>> CreatePlayer(Players players)
+    {
+        
+        var player = await _playerService.Create(players);
+        
+        
+        return  Created(player);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<object>> UpdateCharacter(Guid id,Players players)
+    {
+        var player = await _playerService.Update(id,players);
+        return Ok(player);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult<object>> DeleteCharacter(Guid id)
+    {
+        var player = await _playerService.Delete(id);
+        return NoContent();
+    }
+
+
+    private ObjectResult Created(object value)
+    {
+        return StatusCode(201, value);
+    }
+}
+
+public class PlayerService
+{
+    private readonly PlayerContext _dbContext;
+
+    public PlayerService(PlayerContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
+
+    public async Task<List<Players>> GetPlayers()
+    {
+        var players = await _dbContext.Players.ToListAsync();
+        return players;
+    }
+
+    public async Task<List<Players>> GetPlayer(Guid id)
+    {
+        var player = await _dbContext.Players.Where(c => c.Id == id).ToListAsync();
+        if( player == null){
+            throw new InvalidOperationException("Such player with id doesnt exist ");
+        }  
+
+        return player;
+    }
+
+    public async Task<Players> Create(Players player)
+    {
+       
+
+        
+        await _dbContext.Players.AddAsync(player);
+        await _dbContext.SaveChangesAsync();
+        return player;
+    }
+
+    public async Task<Players> Update(Guid id,Players players)
+    {
+       
+        
+        Players pl = _dbContext.Players.Where(c => c.Id == id).FirstOrDefault();
+        if (pl == null) throw new Exception("");
+        
+        pl.ModifiedDate = DateTime.UtcNow;
+        
+        await _dbContext.SaveChangesAsync();
+        return pl;
+    }
+
+
+
+ public async Task<Players> Delete(Guid id)
+    {
+       
+        Players player = _dbContext.Players.Where(c => c.Id == id).FirstOrDefault();
+        if (player == null) throw new Exception("");
+        
+        _dbContext.Players.Attach(player);
+        _dbContext.Players.Remove(player);
+        
+        
+        await _dbContext.SaveChangesAsync();
+
+
+        return player;
+
+    }
+
+
+    
+    }

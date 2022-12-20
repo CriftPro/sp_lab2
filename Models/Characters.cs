@@ -44,7 +44,7 @@ namespace code.Models
     public int Stat_Charisma { get;  set; } = default!;
 
 
-    //public Array InInventroy { get; private set; } = default!;
+   
 
     }
 

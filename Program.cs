@@ -3,7 +3,7 @@ using Code.Services;
 using code.DataModels;
 using code.Services;
 
-const string connection_to_db = "Host=localhost;Database=lab2;Username=postgres;Password=08071999";
+const string connection_to_db = "Host=den-sav-isfku19.postgres.database.azure.com;Database=postgres;Username=denielius_savrukovas;Password=03072018Lab4";
 
 var builder = WebApplication.CreateBuilder(args);
 
